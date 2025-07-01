@@ -71,3 +71,4 @@ The following features were engineered from the time-series consumption data for
 *   **Unsupervised Anomaly Detection**: An Isolation Forest model was trained on the same set of consumption features to identify anomalies independently. While the internal workings are a black box, its results can be used for validation.
     
 *   **Result Corroboration**: To strengthen the findings, the anomalies identified by the Isolation Forest were cross-referenced with those flagged by the PCA-based statistical method. A high degree of overlap provides a stronger basis for concluding that a connection is mis-categorized.
+#### 4\. Phone Number Matching
