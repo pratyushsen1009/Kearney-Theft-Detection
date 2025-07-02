@@ -24,7 +24,7 @@ This section details the methodology for identifying Non-Domestic consumers erro
 
 > **Data Note:** 30-40 months of consumption data was available for each connection, spanning the years 2021-2025. The dataset exhibited imbalances, with a higher incidence of null values in more recent years.
 
-### ROUGH APPROACH
+### APPROACH
 
 #### 1\. Feature Engineering
 
