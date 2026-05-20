@@ -89,19 +89,6 @@ Approximately **3500 commercial establishments** were collected within a **10 km
 
 ---
 
-## Suggested Figure
-
-Add:
-```text
-images/google_maps_pipeline.png
-```
-
-Illustration idea:
-```text
-Google Maps API → Nearby Search → Commercial Database
-```
-
----
 
 ## Step 2: Geospatial Nearest Neighbor Search
 
@@ -140,21 +127,6 @@ Execution time reduced from:
 ```text
 20–25 minutes → 1–2 seconds
 ```
-
----
-
-## Suggested Figure
-
-Add:
-```text
-images/balltree_search.png
-```
-
-Illustration idea:
-- Commercial point
-- Nearest Domestic
-- Nearest Non-Domestic
-- Radius comparisons
 
 ---
 
@@ -274,19 +246,6 @@ The PCA projection revealed two distinct behavioral patterns:
 ### Non-Domestic Consumers
 - Positive slope cluster
 - Increasing recent consumption trend
-
----
-
-## Suggested Figure
-
-Add:
-```text
-images/pca_plot.png
-```
-
-Caption:
-> PCA distribution showing separation between Small Industries and Non-Domestic consumers.
-
 ---
 
 # Anomaly Detection
