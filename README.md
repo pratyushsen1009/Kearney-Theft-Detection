@@ -1,74 +1,457 @@
-Kearney-Theft-Detection: Anomaly Detection in Electric Meter Categorization
-===========================================================================
+# Smart Grid Theft Detection & Accident Analytics
 
-This project aims to address the mis-categorization of electric meters for reduced tariff rates, focusing on the Tonk sub-division of Rajasthan.
+> Machine Learning, Geospatial Intelligence, NLP Pipelines, and Dashboard Engineering for Power Distribution Analytics
 
-> **Note on Tariff Rate Order:** The established tariff hierarchy is as follows:Non-Domestic > Industrial > Domestic > Agricultural
+---
 
-I. Identification of Non-Domestic Consumers Mis-categorized as Domestic
------------------------------------------------------------------------
+# Overview
 
-This phase focuses on identifying commercial entities that are incorrectly billed under a domestic tariff.
+This repository documents two data-driven projects developed during an internship focused on power distribution analytics and operational intelligence:
 
-*   **Data Acquisition**: Commercial establishment data was systematically acquired using the Google Maps API to create a comprehensive list of known non-domestic entities within the Tonk sub-division.
-    
-*   **Geospatial Proximity Analysis**: A spatial analysis was conducted by comparing the geographic coordinates of the identified commercial establishments with the locations of domestic metered connections.
-    
-*   **Anomaly Flagging**: Connections where the Euclidean distance between a registered domestic meter and a known commercial establishment was below a predetermined threshold were flagged as potential cases of tariff mis-categorization.
-    
+1. Electricity Theft Detection System  
+2. Power Accident Cause Analysis & Dashboard
 
-II. Consumption-Based Modelling for Mis-categorization Detection
-----------------------------------------------------------------
+The work combines:
+- Geospatial analytics
+- Unsupervised learning
+- Anomaly detection
+- NLP classification pipelines
+- Dashboard engineering
 
-This section details the methodology for identifying Non-Domestic consumers erroneously categorized as Small Industrial, based on their electricity consumption patterns.
+The objective was to automate the identification of suspicious electricity usage patterns and extract actionable insights from large-scale accident datasets.
 
-> **Data Note:** 30-40 months of consumption data was available for each connection, spanning the years 2021-2025. The dataset exhibited imbalances, with a higher incidence of null values in more recent years.
+---
 
-### APPROACH
+# Project 1: Electricity Theft Detection
 
-#### 1\. Feature Engineering
+## Problem Statement
 
-The following features were engineered from the time-series consumption data for each connection:
+Electricity theft often occurs when:
+- Commercial establishments are registered as domestic consumers
+- Non-domestic establishments are registered as small industries to obtain tariff advantages
 
-*   **Monthly Average Consumption**: Mean consumption for each of the 12 calendar months (12 features).
-    
-*   **Annual Average Consumption**: Mean consumption for each year (2021, 2022, 2023, 2024, 2025).
-    
-*   **Overall Average Consumption**: The global mean consumption across the entire period for each connection.
-    
-*   **Consumption Volatility**: The standard deviation of monthly consumption.
-    
+Traditional manual inspection is:
+- Slow
+- Expensive
+- Difficult to scale
 
-#### 2\. Principal Component Analysis (PCA)
+This project developed algorithmic approaches to automatically flag suspicious consumers using:
+- Geospatial proximity analysis
+- Consumption behavior analysis
+- Address and ownership similarity matching
 
-*   **Dimensionality Reduction & Results**:
-    
-    *   Component 1 explained ~80% of the variance.
-        
-    *   Component 2 explained ~5% of the variance.
-        
-*   **Component Interpretation**:
-    
-    *   **Component 1**: Exhibited nearly uniform positive loadings (~0.2) across all consumption features, representing the overall magnitude of electricity usage.
-        
-    *   **Component 2**: Showed heavier positive loadings on the '2024' and '2025' annual averages (~0.6), with near-zero loadings on other features.
-        
-*   **Cluster Analysis & Hypothesis**:
-    
-    *   When plotted with PC1 on the x-axis and PC2 on the y-axis:
-        
-        *   **Small Industries** formed a dense, linear cluster almost parallel to the y-axis.
-            
-        *   **Non-Domestic** connections formed a distinct, diverging cone along a trajectory with a slope of approximately 1.
-            
-    *   **Conjecture**: Connections classified as "Small Industrial" that deviate significantly from the primary industrial cluster are likely mis-categorized Non-Domestic consumers.
-        
-*   **Statistical Anomaly Detection**: Outliers were identified as data points located beyond 2.5 standard deviations from the centroid of the Small Industrial cluster. This method flagged ~10 anomalous connections.
-    
+---
 
-#### 3\. Isolation Forest
+# System Architecture
 
-*   **Unsupervised Anomaly Detection**: An Isolation Forest model was trained on the same set of consumption features to identify anomalies independently. While the internal workings are a black box, its results can be used for validation.
-    
-*   **Result Corroboration**: To strengthen the findings, the anomalies identified by the Isolation Forest were cross-referenced with those flagged by the PCA-based statistical method. A high degree of overlap provides a stronger basis for concluding that a connection is mis-categorized.
-#### 4\. Phone Number Matching
+```text
+Google Maps API
+        │
+        ▼
+Commercial Establishment Scraping
+        │
+        ▼
+Consumer Meter Database
+        │
+        ├──────────────┐
+        ▼              ▼
+Geospatial        Consumption
+Detection         Analytics
+        │              │
+        └──────┬───────┘
+               ▼
+        Risk Scoring Engine
+               ▼
+      High-Risk Theft Cases
+```
+
+---
+
+# Approach 1: Non-Domestic Registered as Domestic
+
+## Objective
+
+Detect commercial establishments operating under domestic electricity connections.
+
+---
+
+## Algorithmic Workflow
+
+### Step 1: Commercial Establishment Scraping
+
+A Google Maps API based pipeline was built to scrape:
+- Establishment names
+- Coordinates
+- Contact information
+- Nearby businesses
+
+Approximately **3500 commercial establishments** were collected within a **10 km radius** from Tonk city center.
+
+---
+
+## Suggested Figure
+
+Add:
+```text
+images/google_maps_pipeline.png
+```
+
+Illustration idea:
+```text
+Google Maps API → Nearby Search → Commercial Database
+```
+
+---
+
+## Step 2: Geospatial Nearest Neighbor Search
+
+A brute-force distance comparison between all establishments and all meter locations was computationally expensive.
+
+### Initial Complexity
+
+```text
+O(N × M)
+```
+
+Where:
+- N = commercial establishments
+- M = registered consumers
+
+This took roughly:
+- **20–25 minutes** per execution.
+
+---
+
+## Optimization Using BallTree
+
+To accelerate nearest-neighbor search, the **BallTree algorithm** was implemented.
+
+### Why BallTree?
+
+BallTree partitions spatial points hierarchically using hyperspheres, enabling:
+- Fast nearest-neighbor lookup
+- Efficient geospatial queries
+- Scalable radius searches
+
+### Result
+
+Execution time reduced from:
+
+```text
+20–25 minutes → 1–2 seconds
+```
+
+---
+
+## Suggested Figure
+
+Add:
+```text
+images/balltree_search.png
+```
+
+Illustration idea:
+- Commercial point
+- Nearest Domestic
+- Nearest Non-Domestic
+- Radius comparisons
+
+---
+
+## Theft Flagging Logic
+
+A commercial establishment was flagged as suspicious when:
+
+```python
+distance_to_domestic < 5m
+AND
+distance_to_non_domestic > 5m
+```
+
+This indicates:
+- The establishment physically exists
+- Nearby registered meter is domestic
+- No nearby legitimate commercial connection exists
+
+---
+
+## Result
+
+After filtering:
+- ~150 establishments
+- Approximately 4% of the total dataset
+
+were shortlisted as high-risk theft cases.
+
+---
+
+# Approach 2: Consumption-Based Detection
+
+## Objective
+
+Identify suspicious consumers using electricity usage behavior.
+
+---
+
+# Feature Engineering
+
+A total of **19 engineered features** were extracted from historical meter consumption data.
+
+## Features Used
+
+### 1. Annual Consumption Features
+
+Mean yearly consumption from:
+- 2021
+- 2022
+- 2023
+- 2024
+- 2025
+
+### 2. Monthly Consumption Trends
+
+Average consumption for each calendar month.
+
+### 3. Statistical Features
+
+- Overall mean usage
+- Standard deviation
+
+---
+
+# Principal Component Analysis (PCA)
+
+## Why PCA?
+
+The dataset had:
+- Correlated temporal features
+- High-dimensional consumption patterns
+
+PCA was used to:
+- Reduce dimensionality
+- Identify latent behavioral trends
+- Visualize category separation
+
+---
+
+## PCA Insights
+
+### PC1 (~80% variance)
+
+Represents:
+- Overall consumption magnitude
+
+All features showed strong positive loadings (~0.2).
+
+---
+
+### PC2 (~5% variance)
+
+Strongly influenced by:
+- 2024
+- 2025 consumption averages
+
+This captured recent behavioral changes.
+
+---
+
+## Total Variance Captured
+
+```text
+PC1 + PC2 ≈ 85%
+```
+
+---
+
+# Behavioral Clustering
+
+The PCA projection revealed two distinct behavioral patterns:
+
+### Small Industries
+- Linear cluster
+- Negative slope trend
+
+### Non-Domestic Consumers
+- Positive slope cluster
+- Increasing recent consumption trend
+
+---
+
+## Suggested Figure
+
+Add:
+```text
+images/pca_plot.png
+```
+
+Caption:
+> PCA distribution showing separation between Small Industries and Non-Domestic consumers.
+
+---
+
+# Anomaly Detection
+
+A regression line was fitted over the Small Industry cluster.
+
+Consumers significantly deviating from the expected distribution were flagged as anomalies.
+
+### Logic
+
+```text
+Large deviation from SIP regression boundary
+→ Potential misclassification
+→ Possible electricity theft
+```
+
+---
+
+# Approach 3: Address-Based Detection
+
+## Objective
+
+Cross-verify ownership and identity patterns between:
+- Commercial establishments
+- Registered meter records
+
+---
+
+# Pipeline
+
+## Step 1: Fetch Establishment Details
+
+Using:
+- Google Maps API
+- Google Places API
+
+The pipeline extracted:
+- Business names
+- Phone numbers
+- Address metadata
+
+---
+
+## Step 2: Nearby Small Industry Search
+
+All nearby Small Industry connections within the search radius were identified.
+
+---
+
+## Step 3: Nearest Non-Domestic Matching
+
+For every establishment:
+- Closest Non-Domestic consumer was identified
+- Registered details were extracted
+
+---
+
+## Step 4: Similarity Scoring
+
+A similarity scoring system compared:
+- Business names
+- Phone numbers
+- Ownership information
+
+between:
+- Google Maps data
+- Registered meter database
+
+---
+
+# Example Output
+
+The pipeline generated structured outputs containing:
+- Establishment names
+- Phone numbers
+- Nearest meter records
+- Similarity flags
+- Distance metrics
+
+---
+
+# Future Improvements
+
+Planned extensions include:
+
+- Automated district-scale deployment
+- Real-time monitoring dashboard
+- Alternative ownership retrieval methods
+- Continuous theft detection pipelines
+- GitHub-based documentation and workflow automation
+
+---
+
+# Project 2: Accident Cause Analysis
+
+## Objective
+
+Analyze accident reports from the power distribution sector and automatically classify causes into structured categories.
+
+---
+
+# NLP Pipeline
+
+## Step 1: Text Normalization
+
+The raw reports contained:
+- Krutidev encoded Hindi
+- Devanagari script
+- Mixed formatting
+
+A custom conversion pipeline transformed:
+- Krutidev → Unicode Hindi
+- Hindi → English translation
+
+This enabled downstream NLP processing.
+
+---
+
+# Supervised Classification
+
+## Model Used
+
+A prompt-engineering based classification pipeline was implemented using the DeepSeek API.
+
+Features:
+- Batch processing
+- Automated categorization
+- Scalable inference pipeline
+
+---
+
+# Accident Categories
+
+The model classified incidents into six major groups:
+
+- Accidental Contact
+- Equipment Failure
+- Unauthorized & Illegal Activity
+- Unsafe Work Practices
+- Weather & External Factors
+- Unknown / Other
+
+---
+
+# Sub-Categorization
+
+Each category was further divided into finer subclasses such as:
+
+- Transformer Failure
+- Wire Snap Fault
+- Domestic Activity Contact
+- Unsafe Equipment Handling
+- Pole Collapse
+
+---
+
+# Dashboard Engineering
+
+A Streamlit dashboard was developed for:
+- Trend analysis
+- Filtering
+- Interactive visualization
+- Circle-wise accident tracking
+
+
+
+---
+
